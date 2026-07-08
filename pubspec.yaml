@@ -1,0 +1,24 @@
+name: punto_de_venta
+description: "punto de venta aplicación móvil"
+publish_to: 'none'
+version: 0.1.0
+
+environment:
+  sdk: ^3.9.2
+
+dependencies:
+  flutter:
+    sdk: flutter
+  sqflite: ^2.4.2
+  path: any
+  mobile_scanner: ^7.0.1
+  flutter_background_service: ^5.1.0
+  flutter_reactive_ble: ^5.4.0
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^5.0.0
+
+flutter:
+  uses-material-design: true
