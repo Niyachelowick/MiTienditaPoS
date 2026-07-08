@@ -47,4 +47,6 @@ A Grandes rasgos esos puntos responden al "¿Qué?" buscamos lograr, y me veo en
 la necesidad de explicar el "¿Cómo?"
 
 Diseñaremos nuestro propio dispositivo basándonos en el módulo GM65 y un ESP32,
-el firmware de ese dispositivo eventualmente será subido a su propio repositorio, los esquemáticos y los archivos CAD de la carcasa quizá los suba a mi Portafolio.
+el firmware de ese dispositivo eventualmente será subido a su propio
+repositorio, los esquemáticos y los archivos CAD de la carcasa quizá los suba
+a mi Portafolio.
