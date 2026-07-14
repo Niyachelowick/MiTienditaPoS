@@ -93,6 +93,8 @@ void onStart(ServiceInstance service) {
               print("Estado de conexión: ${conState.connectionState}");
             }
             if (conState.connectionState == DeviceConnectionState.connected) {
+              //              await Future.delayed(const Duration(milliseconds: 600));
+
               characteristic = QualifiedCharacteristic(
                 serviceId: serviceUUID,
                 characteristicId: bleTransCodeChar,
@@ -103,25 +105,49 @@ void onStart(ServiceInstance service) {
                   .subscribeToCharacteristic(characteristic!)
                   .listen(
                     (List<int> data) async {
+                      //Primero limpiamos el String para eliminar el carácter nulo y que no nos de problemas.
                       String codigoCrudo = utf8.decode(data);
                       String codigoLimpio = codigoCrudo
                           .replaceAll('\x00', '')
                           .trim();
+                      //Ahora podemos pasar al filtrado para el protocolo de banderas.
+                      if (codigoLimpio.isNotEmpty) {
+                        String flag = codigoLimpio.substring(0, 1);
+                        if (kDebugMode) {
+                          print(flag);
+                        }
+                        switch (flag) {
+                          case 'C': //Acciones a realizar si se indica que es un código.
+                            final dbHelper = DatabaseHelper();
+                            final todos = await dbHelper.getProductos();
+
+                            if (kDebugMode) {
+                              print(
+                                "Contenido total de la tabla productos en background: $todos",
+                              );
+                            }
+                            final producto = await dbHelper
+                                .getProductoPorCodigo(
+                                  codigoLimpio.substring(1),
+                                );
+                            if (kDebugMode) {
+                              print(codigoLimpio.substring(1));
+                              print(producto);
+                            }
+                            String wow =
+                                producto.last['nombre'] +
+                                ": \$" +
+                                producto.last['precio'].toString();
+                            ble.writeCharacteristicWithoutResponse(
+                              characteristic!,
+                              value: utf8.encode(wow),
+                            );
+                          default:
+                        }
+                      }
+
                       if (codigoCrudo.isNotEmpty) {
                         //Aquí van los métodos del DBhelper para consultar y sumar precios.
-                        final dbHelper = DatabaseHelper();
-                        final todos = await dbHelper.getProductos();
-                        print(
-                          "Contenido total de la tabla productos en background: $todos",
-                        );
-
-                        final producto = await dbHelper.getProductoPorCodigo(
-                          codigoLimpio,
-                        );
-                        if (kDebugMode) {
-                          print(codigoLimpio);
-                          print(producto);
-                        }
                       }
                     },
                     onError: (Object error) {
@@ -142,20 +168,4 @@ void onStart(ServiceInstance service) {
           },
         );
   });
-
-  // Ejemplo: loop periódico
-  // Timer.periodic(const Duration(seconds: 5), (timer) async {
-  //   // service.invoke("update", {
-  //   //   "timestamp": DateTime.now().toIso8601String(),
-  //   // });
-  //   if (isConnected) {
-  //     final response = await ble.readCharacteristic(characteristic!);
-
-  //     print("Recibido: ${utf8.decode(response)}");
-  //   }
-
-  //   if (kDebugMode) {
-  //     print("Hello there");
-  //   }
-  // });
 }
