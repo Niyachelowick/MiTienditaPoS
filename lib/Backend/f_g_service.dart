@@ -38,6 +38,7 @@ void onStart(ServiceInstance service) {
   StreamSubscription<DiscoveredDevice>? scanSubscription;
   StreamSubscription<ConnectionStateUpdate>? connectionSub;
   StreamSubscription<List<int>>? response;
+  final List<Map<String, dynamic>> carritoDeCompra = [];
 
   if (service is AndroidServiceInstance) {
     service.setAsForegroundService();
@@ -130,24 +131,42 @@ void onStart(ServiceInstance service) {
                                 .getProductoPorCodigo(
                                   codigoLimpio.substring(1),
                                 );
+                            carritoDeCompra.add(producto.last);
                             if (kDebugMode) {
                               print(codigoLimpio.substring(1));
                               print(producto);
                             }
                             String wow =
+                                'P' +
                                 producto.last['nombre'] +
                                 ": \$" +
-                                producto.last['precio'].toString();
+                                producto.last['precio'].toStringAsFixed(2);
+                            double totalActual = 0.0;
+                            for (var item in carritoDeCompra) {
+                              // Nos aseguramos de parsear correctamente a double
+                              totalActual += double.parse(
+                                item['precio'].toString(),
+                              );
+                            }
+                            String totalPayload =
+                                'T' + totalActual.toStringAsFixed(2);
+                            //Escribimos en la caracteristica.
                             ble.writeCharacteristicWithoutResponse(
                               characteristic!,
                               value: utf8.encode(wow),
                             );
+                            ble.writeCharacteristicWithoutResponse(
+                              characteristic!,
+                              value: utf8.encode(totalPayload),
+                            );
+                            ble.writeCharacteristicWithoutResponse(
+                              characteristic!,
+                              value: utf8.encode('F'),
+                            );
+                          case 'F': // Acciones al marcar la finalización de la venta desde el escáner
+
                           default:
                         }
-                      }
-
-                      if (codigoCrudo.isNotEmpty) {
-                        //Aquí van los métodos del DBhelper para consultar y sumar precios.
                       }
                     },
                     onError: (Object error) {
