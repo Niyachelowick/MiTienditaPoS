@@ -14,11 +14,11 @@ class EstilosTexto {
   static const TextStyle bigButtonText = TextStyle(
     color: Colors.white,
     fontSize: 32,
-    fontWeight: FontWeight.bold
+    fontWeight: FontWeight.bold,
   );
-   static const TextStyle headingDateTime = TextStyle(
+  static const TextStyle headingDateTime = TextStyle(
     color: Colors.white,
     fontSize: 24,
-    fontWeight: FontWeight.bold
+    fontWeight: FontWeight.bold,
   );
 }
