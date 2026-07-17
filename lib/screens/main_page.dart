@@ -19,7 +19,7 @@ class _MainPageState extends State<MainPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: presetAppBar("MobilPoS"),
+      appBar: presetAppBar("Mi Tiendita PoS"),
       backgroundColor: AppColors.bgColor,
       body: SizedBox(
         width: double.infinity,
@@ -132,7 +132,7 @@ class _MainPageState extends State<MainPage> {
                       );
                     }, //poner aquí la ventana de configuración del escáner.
                     child: Text(
-                      "Config. Escáner",
+                      "Configuración ⚙️",
                       style: EstilosTexto.bigButtonText,
                     ),
                   ),
