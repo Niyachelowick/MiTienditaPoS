@@ -15,6 +15,25 @@ class ConfigScannerScreen extends StatefulWidget {
 class _ConfigScannerScreenState extends State<ConfigScannerScreen> {
   bool isScanning = false;
   Map<String, dynamic>? repo;
+  String? isConected;
+
+  @override
+  void initState() {
+    super.initState();
+    service.on('isConnected').listen((event) {
+      Map<String, dynamic>? conChecker = event;
+      if (conChecker?['conState']) {
+        setState(() {
+          isConected = 'Conectado';
+        });
+      } else {
+        setState(() {
+          isConected = 'Desconectado';
+        });
+      }
+    });
+  }
+
   final service = FlutterBackgroundService();
   @override
   Widget build(BuildContext context) {
@@ -43,23 +62,29 @@ class _ConfigScannerScreenState extends State<ConfigScannerScreen> {
                     if (awa) {
                       service.invoke('scanStart');
                       service.on('update').listen((event) {
-                      setState(() {
-                        repo = event;
+                        setState(() {
+                          repo = event;
+                        });
+                        if (kDebugMode) {
+                          print(repo);
+                        }
                       });
-                      if (kDebugMode) {
-                        print(repo);
-                      }
-                    });
                     } else {
                       service.invoke('scanStop');
                       setState(() {
                         repo = null;
                       });
                     }
-                    
                   },
                 ),
               ],
+            ),
+            Padding(
+              padding: const EdgeInsetsGeometry.only(left: 16, right: 16),
+              child: Text(
+                isConected ?? 'Desconectado',
+                style: EstilosTexto.bodyText,
+              ),
             ),
             Padding(
               padding: const EdgeInsets.only(left: 16, right: 16),
@@ -78,9 +103,9 @@ class _ConfigScannerScreenState extends State<ConfigScannerScreen> {
                   ],
                   rows: [
                     DataRow(
-                      onLongPress: (){
-                       service.invoke('scanStop');
-                        service.invoke('connectTo',{'mac':repo?['id']});
+                      onLongPress: () {
+                        service.invoke('scanStop');
+                        service.invoke('connectTo', {'mac': repo?['id']});
                       },
                       cells: [
                         DataCell(Text(repo?['name'] ?? 'noName')),

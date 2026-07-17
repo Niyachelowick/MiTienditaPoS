@@ -29,7 +29,7 @@ Future<void> initializeService() async {
 @pragma('vm:entry-point')
 void onStart(ServiceInstance service) {
   final ble = FlutterReactiveBle();
-  // bool isConnected = false;
+  bool isConnected = false;
   //  bool shouldReconnect=true;
   String? deviceMac;
   Uuid serviceUUID = Uuid.parse("7509cd08-fa63-49d3-8c6c-94c47731ed42");
@@ -101,7 +101,8 @@ void onStart(ServiceInstance service) {
                 characteristicId: bleTransCodeChar,
                 deviceId: deviceMac ?? 'D8:BC:38:E3:6D:DE',
               );
-              // isConnected = true;
+              isConnected = true;
+              service.invoke('isConnected', {'conState': isConnected});
               response = ble
                   .subscribeToCharacteristic(characteristic!)
                   .listen(
@@ -118,6 +119,7 @@ void onStart(ServiceInstance service) {
                           print(flag);
                         }
                         switch (flag) {
+                          //C-flag
                           case 'C': //Acciones a realizar si se indica que es un código.
                             final dbHelper = DatabaseHelper();
                             final todos = await dbHelper.getProductos();
@@ -163,6 +165,7 @@ void onStart(ServiceInstance service) {
                               characteristic!,
                               value: utf8.encode('F'),
                             );
+                          //F-flag
                           case 'F': // Acciones al marcar la finalización de la venta desde el escáner
 
                           default:
@@ -177,7 +180,8 @@ void onStart(ServiceInstance service) {
                   );
             } else if (conState.connectionState ==
                 DeviceConnectionState.disconnected) {
-              // isConnected = false;
+              isConnected = false;
+              service.invoke('isConnected', {'conState': isConnected});
             }
           },
           onError: (dynamic error) {
