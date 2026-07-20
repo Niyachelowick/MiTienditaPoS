@@ -9,6 +9,7 @@ import 'package:punto_de_venta/core/app_colors.dart';
 import 'package:punto_de_venta/core/estilos_texto.dart';
 //import 'package:punto_de_venta/screens/scan_screen.dart';
 import 'package:punto_de_venta/screens/selling_screen_cam_canning.dart';
+import 'dart:async';
 
 class SellingScreen extends StatefulWidget {
   const SellingScreen({super.key});
@@ -25,13 +26,40 @@ class _SellingScreenState extends State<SellingScreen> {
   final service = FlutterBackgroundService();
   final codCtrl = TextEditingController();
   static const double globalWidth = 360;
+  StreamSubscription? _carritoSubscription;
+
+  @override
+  void initState() {
+    super.initState();
+    _carritoSubscription = service.on('getCarrito').listen((event) {
+      if (!mounted) return;
+      if (event != null && event['cart'] != null) {
+        final List<dynamic> rawList = event['cart'];
+        setState(() {
+          carrito = rawList.map((item) {
+            final map = Map<String, dynamic>.from(item);
+            if (map['precio'] != null) {
+              map['precio'] = (map['precio'] as num).toDouble();
+            }
+            if (map['cantidad'] != null) {
+              map['cantidad'] = (map['cantidad'] as num).toDouble();
+            }
+            return map;
+          }).toList();
+        });
+      }
+    });
+    //  service.on('getTotal').listen((event) {
+    //    if (event?['total'] > 0) total = event?['total'];
+    //  });
+  }
 
   // Future<void> _annadirProducto(String codigo) async {// Esta es para el escáner pro BLE
   //   final producto = carrito.firstWhere(
   //     (item) => item['codigo'] == codigo,
   //     orElse: () => {},
   //   );
-
+  //
   //   if (producto.isNotEmpty) {
   //     setState(() {
   //       producto['cantidad'] += 1;
@@ -44,13 +72,18 @@ class _SellingScreenState extends State<SellingScreen> {
   //       articuloVendido.addAll(result.first);
   //       articuloVendido['cantidad'] = 1;
   //       articuloVendido['subtotal'] = articuloVendido['precio'];
-  //       setState(() {
-  //         carrito.add(articuloVendido);
+  //      setState(() {
+  //        carrito.add(articuloVendido);
   //       });
   //     }
   //   }
   //   total = carrito.fold<double>(0, (sum, item) => sum + item['subtotal']);
   // }
+  @override
+  void dispose() {
+    _carritoSubscription?.cancel();
+    super.dispose();
+  }
 
   Future<void> _annadirProductoGranel(String codigo, double cantidad) async {
     final producto = carrito.firstWhere(

@@ -26,6 +26,33 @@ Future<void> initializeService() async {
   );
 }
 
+Future<double> _annadirProducto(
+  String codigo,
+  List<Map<String, dynamic>> carrito,
+) async {
+  final producto = carrito.firstWhere(
+    (item) => item['codigo'] == codigo,
+    orElse: () => {},
+  );
+
+  if (producto.isNotEmpty) {
+    producto['cantidad'] += 1;
+    producto['subtotal'] = producto['cantidad'] * producto['precio'];
+  } else {
+    final dbHelper = DatabaseHelper();
+    final result = await dbHelper.getProductoPorCodigo(codigo);
+    if (result.isNotEmpty) {
+      Map<String, dynamic> articuloVendido = {};
+      articuloVendido.addAll(result.first);
+      articuloVendido['cantidad'] = 1;
+      articuloVendido['subtotal'] = articuloVendido['precio'];
+      carrito.add(articuloVendido);
+    }
+  }
+  final total = carrito.fold<double>(0, (sum, item) => sum + item['subtotal']);
+  return total;
+}
+
 @pragma('vm:entry-point')
 void onStart(ServiceInstance service) {
   final ble = FlutterReactiveBle();
@@ -70,6 +97,7 @@ void onStart(ServiceInstance service) {
     connectionSub?.cancel();
     scanSubscription = null;
   });
+
   service.on('connectTo').listen((id) {
     deviceMac = id?['mac']?.toString();
     if (deviceMac == null) {
@@ -133,7 +161,11 @@ void onStart(ServiceInstance service) {
                                 .getProductoPorCodigo(
                                   codigoLimpio.substring(1),
                                 );
-                            carritoDeCompra.add(producto.last);
+                            final totalActual = await _annadirProducto(
+                              codigoLimpio.substring(1),
+                              carritoDeCompra,
+                            );
+
                             if (kDebugMode) {
                               print(codigoLimpio.substring(1));
                               print(producto);
@@ -143,16 +175,13 @@ void onStart(ServiceInstance service) {
                                 producto.last['nombre'] +
                                 ": \$" +
                                 producto.last['precio'].toStringAsFixed(2);
-                            double totalActual = 0.0;
-                            for (var item in carritoDeCompra) {
-                              // Nos aseguramos de parsear correctamente a double
-                              totalActual += double.parse(
-                                item['precio'].toString(),
-                              );
-                            }
-                            String totalPayload =
-                                'T' + totalActual.toStringAsFixed(2);
-                            //Escribimos en la caracteristica.
+                            String totalPayload = 'T' + totalActual.toString();
+                            //Mandamos la infomración a la UI.
+                            service.invoke('getCarrito', {
+                              'cart': carritoDeCompra,
+                            });
+                            //Escribimos en la caracteristica
+                            service.invoke('getTotal', {'total': totalActual});
                             ble.writeCharacteristicWithoutResponse(
                               characteristic!,
                               value: utf8.encode(wow),
