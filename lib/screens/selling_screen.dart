@@ -27,6 +27,7 @@ class _SellingScreenState extends State<SellingScreen> {
   final codCtrl = TextEditingController();
   static const double globalWidth = 360;
   StreamSubscription? _carritoSubscription;
+  StreamSubscription? _totalSub;
 
   @override
   void initState() {
@@ -49,39 +50,20 @@ class _SellingScreenState extends State<SellingScreen> {
         });
       }
     });
-    //  service.on('getTotal').listen((event) {
-    //    if (event?['total'] > 0) total = event?['total'];
-    //  });
+    _totalSub = service.on('getTotal').listen((event) {
+      if (!mounted) return;
+      if (event != null && event['total'] != null) {
+        setState(() {
+          total = event['total'].toDouble();
+        });
+      }
+    });
   }
 
-  // Future<void> _annadirProducto(String codigo) async {// Esta es para el escáner pro BLE
-  //   final producto = carrito.firstWhere(
-  //     (item) => item['codigo'] == codigo,
-  //     orElse: () => {},
-  //   );
-  //
-  //   if (producto.isNotEmpty) {
-  //     setState(() {
-  //       producto['cantidad'] += 1;
-  //       producto['subtotal'] = producto['cantidad'] * producto['precio'];
-  //     });
-  //   } else {
-  //     final result = await dbHelper.getProductoPorCodigo(codigo);
-  //     if (result.isNotEmpty) {
-  //       Map<String, dynamic> articuloVendido = {};
-  //       articuloVendido.addAll(result.first);
-  //       articuloVendido['cantidad'] = 1;
-  //       articuloVendido['subtotal'] = articuloVendido['precio'];
-  //      setState(() {
-  //        carrito.add(articuloVendido);
-  //       });
-  //     }
-  //   }
-  //   total = carrito.fold<double>(0, (sum, item) => sum + item['subtotal']);
-  // }
   @override
   void dispose() {
     _carritoSubscription?.cancel();
+    _totalSub?.cancel();
     super.dispose();
   }
 
@@ -119,9 +101,16 @@ class _SellingScreenState extends State<SellingScreen> {
   }
 
   Future<void> _volcarTodo() async {
+    if (kDebugMode) {
+      print(carrito);
+    }
+    final detallesAFull = await dbHelper.getAllDetails();
     await dbHelper.volcarVenta(total, carrito);
+    if (kDebugMode) {
+      print(detallesAFull);
+    }
     final repo = await dbHelper.getVentas();
-    Future.delayed(Duration(milliseconds: 2000));
+    //    await Future.delayed(Duration(milliseconds: 2000));
     setState(() {
       carrito.clear();
     });
@@ -244,6 +233,7 @@ class _SellingScreenState extends State<SellingScreen> {
               ElevatedButton(
                 onPressed: () {
                   _volcarTodo();
+                  total = 0.0;
                 },
                 child: Text("Finalizar Venta"),
               ),
