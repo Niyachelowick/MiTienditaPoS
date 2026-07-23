@@ -3,11 +3,11 @@ import 'package:sqflite/sqflite.dart';
 import 'package:path/path.dart';
 
 class DatabaseHelper {
-  static final DatabaseHelper _instance =DatabaseHelper._();
+  static final DatabaseHelper _instance = DatabaseHelper._();
   Database? _database;
   DatabaseHelper._();
 
-  factory DatabaseHelper(){
+  factory DatabaseHelper() {
     return _instance;
   }
 
@@ -24,7 +24,12 @@ class DatabaseHelper {
       // esto es solo para el modo debug
       print(dbPath);
     }
-    return await openDatabase(path, version: 1, onCreate: _createDB,singleInstance: true);
+    return await openDatabase(
+      path,
+      version: 1,
+      onCreate: _createDB,
+      singleInstance: true,
+    );
   }
 
   Future _createDB(Database db, int version) async {
@@ -82,7 +87,12 @@ class DatabaseHelper {
 
   Future<List<Map<String, dynamic>>> getProductoPorID(int iD) async {
     final db = await database;
-    return await db.query('productos',columns: ['nombre', 'precio'], where: 'id=?', whereArgs: [iD]);
+    return await db.query(
+      'productos',
+      columns: ['nombre', 'precio'],
+      where: 'id=?',
+      whereArgs: [iD],
+    );
   }
 
   // UPDATE
@@ -154,6 +164,16 @@ class DatabaseHelper {
     );
   }
 
+  Future<List<Map<String, dynamic>>> getDetalleVentas2(int id) async {
+    final db = await database;
+    return db.query(
+      'detalle_venta',
+      columns: ['id_venta', 'id_producto', 'cantidad', 'subtotal'],
+      where: "id_venta=?",
+      whereArgs: [id],
+    );
+  }
+
   Future<List<Map<String, dynamic>>> getVentas() async {
     final db = await database;
     return db.query('ventas');
@@ -163,11 +183,16 @@ class DatabaseHelper {
     final db = await database;
     return db.rawQuery(
       ''' 
-      SELECT* 
+      SELECT * 
       FROM detalle_venta
       WHERE id=?
     ''',
       [id],
     );
+  }
+
+  Future<List<Map<String, dynamic>>> getAllDetails() async {
+    final db = await database;
+    return db.query('detalle_venta');
   }
 }

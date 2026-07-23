@@ -29,7 +29,7 @@ class _DetalleVentaState extends State<DetalleVenta> {
   }
 
   Future<void> _cargarDatos() async {
-    final genericDetail = await dbHelper.getDetalleVentas(widget.idVenta);
+    final genericDetail = await dbHelper.getDetalleVentas2(widget.idVenta);
     for (var p in genericDetail) {
       final prod = await dbHelper.getProductoPorID(p['id_producto']);
       Map<String, dynamic> repo = prod.first;
@@ -44,6 +44,8 @@ class _DetalleVentaState extends State<DetalleVenta> {
     }
     setState(() {});
     if (kDebugMode) {
+      print(genericDetail);
+      print(widget.idVenta);
       print(detalle);
     }
   }

@@ -25,6 +25,7 @@ class _VentasHistorialState extends State<VentasHistorial> {
 
   Future<void> _cargarDatos() async {
     final data = await dbHelper.getVentas();
+    print(data);
     setState(() {
       ventas = data;
     });
@@ -59,14 +60,14 @@ class _VentasHistorialState extends State<VentasHistorial> {
                     ],
                     rows: ventas.map((p) {
                       return DataRow(
-                        onLongPress: (){
+                        onLongPress: () {
                           Navigator.push(
                             context,
                             MaterialPageRoute(
                               builder: (context) => DetalleVenta(
                                 idVenta: p['id'],
                                 date: p['fecha'].toString(),
-                                time:p['hora'],
+                                time: p['hora'],
                               ),
                             ),
                           );
