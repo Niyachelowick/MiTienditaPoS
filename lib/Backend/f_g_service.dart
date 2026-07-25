@@ -53,6 +53,27 @@ Future<double> _annadirProducto(
   return total;
 }
 
+Future<void> _volcarTodo(
+  double total,
+  List<Map<String, dynamic>> carrito,
+) async {
+  if (kDebugMode) {
+    print(carrito);
+  }
+  final dbHelper = DatabaseHelper();
+  final detallesAFull = await dbHelper.getAllDetails();
+  await dbHelper.volcarVenta(total, carrito);
+  if (kDebugMode) {
+    print(detallesAFull);
+  }
+  final repo = await dbHelper.getVentas();
+  //    await Future.delayed(Duration(milliseconds: 2000));
+  carrito.clear();
+  if (kDebugMode) {
+    print(repo);
+  }
+}
+
 @pragma('vm:entry-point')
 void onStart(ServiceInstance service) {
   final ble = FlutterReactiveBle();
@@ -66,6 +87,7 @@ void onStart(ServiceInstance service) {
   StreamSubscription<ConnectionStateUpdate>? connectionSub;
   StreamSubscription<List<int>>? response;
   final List<Map<String, dynamic>> carritoDeCompra = [];
+  double totalActual = 0.0;
 
   if (service is AndroidServiceInstance) {
     service.setAsForegroundService();
@@ -165,7 +187,7 @@ void onStart(ServiceInstance service) {
                                 .getProductoPorCodigo(
                                   codigoLimpio.substring(1),
                                 );
-                            final totalActual = await _annadirProducto(
+                            totalActual = await _annadirProducto(
                               codigoLimpio.substring(1),
                               carritoDeCompra,
                             );
@@ -200,6 +222,18 @@ void onStart(ServiceInstance service) {
                             );
                           //F-flag
                           case 'F': // Acciones al marcar la finalización de la venta desde el escáner
+                            await _volcarTodo(totalActual, carritoDeCompra);
+                            totalActual =
+                                0.0; //Mandamos la infomración a la UI.
+                            service.invoke('getCarrito', {
+                              'cart': carritoDeCompra,
+                            });
+                            //Escribimos en la caracteristica
+                            service.invoke('getTotal', {'total': totalActual});
+                            ble.writeCharacteristicWithoutResponse(
+                              characteristic!,
+                              value: utf8.encode('V'),
+                            );
 
                           default:
                         }
