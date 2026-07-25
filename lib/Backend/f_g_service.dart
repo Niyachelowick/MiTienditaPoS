@@ -98,6 +98,10 @@ void onStart(ServiceInstance service) {
     scanSubscription = null;
   });
 
+  service.on('limpiarVenta').listen((event) {
+    carritoDeCompra.clear();
+  });
+
   service.on('connectTo').listen((id) {
     deviceMac = id?['mac']?.toString();
     if (deviceMac == null) {

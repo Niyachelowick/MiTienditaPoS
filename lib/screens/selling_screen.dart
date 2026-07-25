@@ -113,6 +113,7 @@ class _SellingScreenState extends State<SellingScreen> {
     //    await Future.delayed(Duration(milliseconds: 2000));
     setState(() {
       carrito.clear();
+      total = 0.0;
     });
     if (kDebugMode) {
       print(repo);
@@ -233,7 +234,7 @@ class _SellingScreenState extends State<SellingScreen> {
               ElevatedButton(
                 onPressed: () {
                   _volcarTodo();
-                  total = 0.0;
+                  service.invoke('limpiarVenta');
                 },
                 child: Text("Finalizar Venta"),
               ),
