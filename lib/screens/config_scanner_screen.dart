@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_background_service/flutter_background_service.dart';
@@ -16,22 +18,32 @@ class _ConfigScannerScreenState extends State<ConfigScannerScreen> {
   bool isScanning = false;
   Map<String, dynamic>? repo;
   String? isConected;
+  StreamSubscription? serviceSub;
 
   @override
   void initState() {
     super.initState();
-    service.on('isConnected').listen((event) {
+    service.invoke('hello');
+    serviceSub = service.on('isConnected').listen((event) {
       Map<String, dynamic>? conChecker = event;
       if (conChecker?['conState']) {
         setState(() {
           isConected = 'Conectado';
+          isScanning = true;
         });
       } else {
         setState(() {
           isConected = 'Desconectado';
+          isScanning = false;
         });
       }
     });
+  }
+
+  @override
+  void dispose() {
+    super.dispose();
+    serviceSub?.cancel();
   }
 
   final service = FlutterBackgroundService();

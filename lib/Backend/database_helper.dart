@@ -179,16 +179,9 @@ class DatabaseHelper {
     return db.query('ventas');
   }
 
-  Future<List<Map<String, dynamic>>> getDetalleVentas(int id) async {
+  Future<List<Map<String, dynamic>>> getDetalleVentasByDate(String date) async {
     final db = await database;
-    return db.rawQuery(
-      ''' 
-      SELECT * 
-      FROM detalle_venta
-      WHERE id=?
-    ''',
-      [id],
-    );
+    return db.query('ventas', where: "fecha=?", whereArgs: [date]);
   }
 
   Future<List<Map<String, dynamic>>> getAllDetails() async {

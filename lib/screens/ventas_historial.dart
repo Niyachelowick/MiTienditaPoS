@@ -25,7 +25,9 @@ class _VentasHistorialState extends State<VentasHistorial> {
 
   Future<void> _cargarDatos() async {
     final data = await dbHelper.getVentas();
+    final testDate = await dbHelper.getDetalleVentasByDate("2026-07-21");
     print(data);
+    print(testDate);
     setState(() {
       ventas = data;
     });
@@ -48,38 +50,44 @@ class _VentasHistorialState extends State<VentasHistorial> {
                     color: AppColors.componenColor,
                     borderRadius: BorderRadius.circular(16),
                   ),
-                  child: DataTable(
-                    headingTextStyle: EstilosTexto.headingTables,
-                    dataTextStyle: EstilosTexto.tableText,
-                    columnSpacing: 35,
-                    columns: const [
-                      DataColumn(label: Text("id")),
-                      DataColumn(label: Text("Fecha")),
-                      DataColumn(label: Text("Hora")),
-                      DataColumn(numeric: true, label: Text("Total")),
-                    ],
-                    rows: ventas.map((p) {
-                      return DataRow(
-                        onLongPress: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => DetalleVenta(
-                                idVenta: p['id'],
-                                date: p['fecha'].toString(),
-                                time: p['hora'],
+                  child: SingleChildScrollView(
+                    scrollDirection: Axis.vertical,
+
+                    child: DataTable(
+                      headingTextStyle: EstilosTexto.headingTables,
+                      dataTextStyle: EstilosTexto.tableText,
+                      columnSpacing: 35,
+                      columns: const [
+                        DataColumn(label: Text("id")),
+                        DataColumn(label: Text("Fecha")),
+                        DataColumn(label: Text("Hora")),
+                        DataColumn(numeric: true, label: Text("Total")),
+                      ],
+                      rows: ventas.map((p) {
+                        return DataRow(
+                          onLongPress: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => DetalleVenta(
+                                  idVenta: p['id'],
+                                  date: p['fecha'].toString(),
+                                  time: p['hora'],
+                                ),
                               ),
+                            );
+                          },
+                          cells: [
+                            DataCell(Text(p['id'].toString())),
+                            DataCell(Text(p['fecha'].toString())),
+                            DataCell(Text(p['hora'].toString())),
+                            DataCell(
+                              Text("\$${p['total'].toStringAsFixed(2)}"),
                             ),
-                          );
-                        },
-                        cells: [
-                          DataCell(Text(p['id'].toString())),
-                          DataCell(Text(p['fecha'].toString())),
-                          DataCell(Text(p['hora'].toString())),
-                          DataCell(Text("\$${p['total'].toStringAsFixed(2)}")),
-                        ],
-                      );
-                    }).toList(),
+                          ],
+                        );
+                      }).toList(),
+                    ),
                   ),
                 ),
               ),

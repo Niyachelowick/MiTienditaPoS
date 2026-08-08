@@ -140,43 +140,45 @@ class _SellingScreenState extends State<SellingScreen> {
                     color: AppColors.componenColor,
                     borderRadius: BorderRadius.circular(10),
                   ),
-                  child: DataTable(
-                    columnSpacing: 30,
-                    headingTextStyle: EstilosTexto.headingTables,
-                    dataTextStyle: EstilosTexto.tableText,
-                    columns: [
-                      DataColumn(label: Text("Nombre")),
-                      DataColumn(label: Text("Cantidad")),
-                      DataColumn(label: Text("Precio")),
-                      DataColumn(label: Text("SubTotal")),
-                    ],
-                    rows: carrito.map((p) {
-                      return DataRow(
-                        onLongPress: () {
-                          setState(() {
-                            carrito.remove(p);
-                          });
-                        },
-                        cells: [
-                          DataCell(Text(p['nombre'].toString())),
-                          DataCell(
-                            onTap: () {
-                              setState(() {
-                                p['cantidad']++;
-                              });
-                            },
-                            onDoubleTap: () {
-                              setState(() {
-                                p['cantidad']--;
-                              });
-                            },
-                            Text(p['cantidad'].toString()),
-                          ),
-                          DataCell(Text("\$${p['precio']}")),
-                          DataCell(Text("\$${p['subtotal']}")),
-                        ],
-                      );
-                    }).toList(),
+                  child: SingleChildScrollView(
+                    child: DataTable(
+                      columnSpacing: 30,
+                      headingTextStyle: EstilosTexto.headingTables,
+                      dataTextStyle: EstilosTexto.tableText,
+                      columns: [
+                        DataColumn(label: Text("Nombre")),
+                        DataColumn(label: Text("Cantidad")),
+                        DataColumn(label: Text("Precio")),
+                        DataColumn(label: Text("SubTotal")),
+                      ],
+                      rows: carrito.map((p) {
+                        return DataRow(
+                          onLongPress: () {
+                            setState(() {
+                              carrito.remove(p);
+                            });
+                          },
+                          cells: [
+                            DataCell(Text(p['nombre'].toString())),
+                            DataCell(
+                              onTap: () {
+                                setState(() {
+                                  p['cantidad']++;
+                                });
+                              },
+                              onDoubleTap: () {
+                                setState(() {
+                                  p['cantidad']--;
+                                });
+                              },
+                              Text(p['cantidad'].toString()),
+                            ),
+                            DataCell(Text("\$${p['precio']}")),
+                            DataCell(Text("\$${p['subtotal']}")),
+                          ],
+                        );
+                      }).toList(),
+                    ),
                   ),
                 ),
               ),

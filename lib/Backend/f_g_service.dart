@@ -53,6 +53,26 @@ Future<double> _annadirProducto(
   return total;
 }
 
+Future<double> _restarProducto(
+  String codigo,
+  List<Map<String, dynamic>> carrito,
+) async {
+  final producto = carrito.firstWhere(
+    (item) => item['codigo'] == codigo,
+    orElse: () => {},
+  );
+
+  if (producto.isNotEmpty) {
+    producto['cantidad'] -= 1;
+    producto['subtotal'] = producto['cantidad'] * producto['precio'];
+    if (producto['cantidad'] == 0) {
+      carrito.remove(producto);
+    }
+  }
+  final total = carrito.fold<double>(0, (sum, item) => sum + item['subtotal']);
+  return total;
+}
+
 Future<void> _volcarTodo(
   double total,
   List<Map<String, dynamic>> carrito,
@@ -88,6 +108,7 @@ void onStart(ServiceInstance service) {
   StreamSubscription<List<int>>? response;
   final List<Map<String, dynamic>> carritoDeCompra = [];
   double totalActual = 0.0;
+  bool substracionMode = false;
 
   if (service is AndroidServiceInstance) {
     service.setAsForegroundService();
@@ -113,6 +134,9 @@ void onStart(ServiceInstance service) {
           });
         });
   });
+  service.on('hello').listen((event) {
+    service.invoke('isConnected', {'conState': isConnected});
+  });
   service.on('scanStop').listen((event) {
     //   shouldReconnect = false;
     scanSubscription?.cancel();
@@ -122,6 +146,15 @@ void onStart(ServiceInstance service) {
 
   service.on('limpiarVenta').listen((event) {
     carritoDeCompra.clear();
+    ble.writeCharacteristicWithoutResponse(
+      characteristic!,
+      value: utf8.encode('V'),
+    );
+
+    ble.writeCharacteristicWithoutResponse(
+      characteristic!,
+      value: utf8.encode('F'),
+    );
   });
 
   service.on('connectTo').listen((id) {
@@ -187,10 +220,23 @@ void onStart(ServiceInstance service) {
                                 .getProductoPorCodigo(
                                   codigoLimpio.substring(1),
                                 );
-                            totalActual = await _annadirProducto(
-                              codigoLimpio.substring(1),
-                              carritoDeCompra,
-                            );
+                            double stock = producto.last['cantidad'];
+                            if (stock > 0) {
+                              if (kDebugMode) print('Stock dispnible');
+                            } else {
+                              if (kDebugMode) print('stock NO dispnible');
+                            }
+                            if (!substracionMode) {
+                              totalActual = await _annadirProducto(
+                                codigoLimpio.substring(1),
+                                carritoDeCompra,
+                              );
+                            } else {
+                              totalActual = await _restarProducto(
+                                codigoLimpio.substring(1),
+                                carritoDeCompra,
+                              );
+                            }
 
                             if (kDebugMode) {
                               print(codigoLimpio.substring(1));
@@ -233,6 +279,15 @@ void onStart(ServiceInstance service) {
                             ble.writeCharacteristicWithoutResponse(
                               characteristic!,
                               value: utf8.encode('V'),
+                            );
+                          case '-':
+                            substracionMode = !substracionMode;
+                            if (kDebugMode) {
+                              print(substracionMode);
+                            }
+                            ble.writeCharacteristicWithoutResponse(
+                              characteristic!,
+                              value: utf8.encode('-'),
                             );
 
                           default:
